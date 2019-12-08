@@ -1,0 +1,93 @@
+---
+  - name: "Install WeeWX WeeRT and Dependencies"
+    hosts: localhost
+    connection: local 
+    tasks:
+
+    #- name: "just execute a ls -lrt command"
+    #  shell: "ls -lrt"
+    #  register: "output"
+
+    ## All the InfluxDB bits ##
+    # Refer to https://www.influxdata.com/blog/deploying-influxdb-with-ansible/
+    # also: https://community.influxdata.com/t/raspberry-pi-installation-instructions/5515/5
+    # also: https://pimylifeup.com/raspberry-pi-influxdb/
+
+    # https://stackoverflow.com/questions/45840664/installing-nodejs-lts-for-ansible
+
+    #- name: "Download InfluxDB for ARM"
+    #  get_url:
+    #    url: https://dl.influxdata.com/influxdb/releases/influxdb-1.7.9_linux_armhf.tar.gz
+    #    dest: /var/tmp/influxdb-1.7.9_linux_armhf.tar.gz
+    #    checksum: sha256:c3f87938f8349649bf51db0a23683c06515548f6a84a9bcf0068a095e539e99e
+
+    - name: Git Clone WeeRT-JS
+      shell: "git clone https://github.com/tkeffer/weert-js.git"
+      register: "output"
+
+    - name: Import InfluxDB GPG signing key
+      apt_key: url=https://repos.influxdata.com/influxdb.key state=present
+
+    - name: Add InfluxDB repository
+      apt_repository: repo='deb https://repos.influxdata.com/debian buster stable' state=present
+
+    - name: Install InfluxDB packages
+      apt: name=influxdb state=present
+
+    - name: Modify InfluxDB hostname
+      replace:
+        dest=/etc/influxdb/influxdb.conf
+        regexp='hostname = "localhost"'
+        replace='hostname = "{{ ansible_hostname }}"'
+        backup=yes
+
+    - name: Start the InfluxDB service
+      service: name=influxdb state=restarted
+
+    #- name: Create sample database
+    #  command: /opt/influxdb/influx -execute 'CREATE DATABASE sample_database'
+
+    #- name: Load some test data into sample database
+    #  uri:
+    #    url: https://localhost:8086/write?db=sample_database
+    #    method: POST
+    #    body: "random_ints,host=server_{{ 10 | random }} value={{ 100 | random }}"
+    #    status_code: 204
+    #  with_sequence: start=1 end=10
+
+    - name: download Nodesource Script
+      get_url:
+        url: https://deb.nodesource.com/setup_12.x
+        dest: /var/tmp/setup_12.x
+
+    - name: Run Node.js Setup
+      shell: "chmod +x /var/tmp/setup_12.x && /var/tmp/setup_12.x"
+      register: "output"
+
+    - name: Install Node and npm
+      apt: name=nodejs state=present
+
+    - name: Install node modules
+      shell: "cd /home/pi/weert-js && npm install"
+      register: "output"
+
+    - name: Download WeeWX
+      get_url:
+        url: http://www.weewx.com/downloads/weewx_3.9.2-1_all.deb
+        dest: /var/tmp/weewx_3.9.2-1_all.deb
+    
+    # Directions: http://weewx.com/docs/debian.htm
+    - name: Add WeeWX repo key
+      apt_key: url=http://weewx.com/keys.html state=present
+
+    - name: Add WeeWX repo
+      apt_repository:
+        repo: deb [arch=all] http://weewx.com/apt/ squeeze main
+        state: present
+
+    - name: Install WeeWX
+      apt: name=weewx state=present
+
+    - name: Install NGINX
+      apt: name=nginx state=present
+    - debug: var=output.stdout_lines
