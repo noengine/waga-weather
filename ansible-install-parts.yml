@@ -23,6 +23,8 @@
 
     - name: Git Clone WeeRT-JS
       shell: "git clone https://github.com/tkeffer/weert-js.git"
+      become: yes
+      become_user: pi
       register: "output"
 
     - name: Import InfluxDB GPG signing key
@@ -40,6 +42,15 @@
     - name: Start Chronograf
       service: name=chronograf state=restarted
 
+    - name: Install Telegraf
+      apt: name=telegraf state=present
+
+    - name: Start Telegraf
+      service: name=telegraf state=restarted
+
+#    - name: Configure Telegraf
+#      shell: "cat /home/pi/waga-weather/telegraf.conf >> /etc/telegraf/telegraf.conf"
+
     - name: Modify InfluxDB hostname
       replace:
         dest=/etc/influxdb/influxdb.conf
@@ -49,17 +60,6 @@
 
     - name: Start the InfluxDB service
       service: name=influxdb state=restarted
-
-    #- name: Create sample database
-    #  command: /opt/influxdb/influx -execute 'CREATE DATABASE sample_database'
-
-    #- name: Load some test data into sample database
-    #  uri:
-    #    url: https://localhost:8086/write?db=sample_database
-    #    method: POST
-    #    body: "random_ints,host=server_{{ 10 | random }} value={{ 100 | random }}"
-    #    status_code: 204
-    #  with_sequence: start=1 end=10
 
     - name: download Nodesource Script
       get_url:
@@ -75,13 +75,10 @@
 
     - name: Install node modules
       shell: "cd /home/pi/weert-js && npm install"
+      become: yes
+      become_user: pi
       register: "output"
 
-    - name: Download WeeWX
-      get_url:
-        url: http://www.weewx.com/downloads/weewx_3.9.2-1_all.deb
-        dest: /var/tmp/weewx_3.9.2-1_all.deb
-    
     # Directions: http://weewx.com/docs/debian.htm
     - name: Add WeeWX repo key
       apt_key: url=http://weewx.com/keys.html state=present
@@ -93,6 +90,18 @@
 
     - name: Install WeeWX
       apt: name=weewx state=present
+
+    - name: Configure and restart WeeWX
+      shell: "cp /home/pi/waga-weather/weewx.conf /etc/weewx/weewx.conf"
+
+    - name: Copy node systemd service file
+      shell: "cp /home/pi/waga-weather/weert.service /etc/systemd/system"
+
+    - name: Enable and start WeeRT systemd service
+      systemd:
+        name: weert.service
+        enabled: yes
+        state: started
 
     - name: Install NGINX
       apt: name=nginx state=present
