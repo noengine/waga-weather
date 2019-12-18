@@ -4,29 +4,6 @@
     connection: local 
     tasks:
 
-    #- name: "just execute a ls -lrt command"
-    #  shell: "ls -lrt"
-    #  register: "output"
-
-    ## All the InfluxDB bits ##
-    # Refer to https://www.influxdata.com/blog/deploying-influxdb-with-ansible/
-    # also: https://community.influxdata.com/t/raspberry-pi-installation-instructions/5515/5
-    # also: https://pimylifeup.com/raspberry-pi-influxdb/
-
-    # https://stackoverflow.com/questions/45840664/installing-nodejs-lts-for-ansible
-
-    #- name: "Download InfluxDB for ARM"
-    #  get_url:
-    #    url: https://dl.influxdata.com/influxdb/releases/influxdb-1.7.9_linux_armhf.tar.gz
-    #    dest: /var/tmp/influxdb-1.7.9_linux_armhf.tar.gz
-    #    checksum: sha256:c3f87938f8349649bf51db0a23683c06515548f6a84a9bcf0068a095e539e99e
-
-    - name: Git Clone WeeRT-JS
-      shell: "git clone https://github.com/tkeffer/weert-js.git"
-      become: yes
-      become_user: pi
-      register: "output"
-
     - name: Import InfluxDB GPG signing key
       apt_key: url=https://repos.influxdata.com/influxdb.key state=present
 
@@ -35,21 +12,6 @@
 
     - name: Install InfluxDB packages
       apt: name=influxdb state=present
-
-    - name: Install Chronograf
-      apt: name=chronograf state=present
-
-    - name: Start Chronograf
-      service: name=chronograf state=restarted
-
-    - name: Install Telegraf
-      apt: name=telegraf state=present
-
-    - name: Start Telegraf
-      service: name=telegraf state=restarted
-
-#    - name: Configure Telegraf
-#      shell: "cat /home/pi/waga-weather/telegraf.conf >> /etc/telegraf/telegraf.conf"
 
     - name: Modify InfluxDB hostname
       replace:
@@ -60,6 +22,21 @@
 
     - name: Start the InfluxDB service
       service: name=influxdb state=restarted
+
+    - name: Install Chronograf
+      apt: name=chronograf state=present
+
+    - name: Start Chronograf
+      service: name=chronograf state=restarted
+
+    - name: Install Telegraf
+      apt: name=telegraf state=present
+
+    - name: Configure Telegraf
+      shell: "cat /home/pi/waga-weather/telegraf.conf >> /etc/telegraf/telegraf.conf"
+
+    - name: Start Telegraf
+      service: name=telegraf state=restarted      
 
     - name: download Nodesource Script
       get_url:
@@ -73,13 +50,18 @@
     - name: Install Node and npm
       apt: name=nodejs state=present
 
+    - name: Git Clone WeeRT-JS
+      shell: "cd /home/pi && git clone https://github.com/tkeffer/weert-js.git"
+      become: yes
+      become_user: pi
+      register: "output"
+
     - name: Install node modules
       shell: "cd /home/pi/weert-js && npm install"
       become: yes
       become_user: pi
       register: "output"
 
-    # Directions: http://weewx.com/docs/debian.htm
     - name: Add WeeWX repo key
       apt_key: url=http://weewx.com/keys.html state=present
 
@@ -91,8 +73,11 @@
     - name: Install WeeWX
       apt: name=weewx state=present
 
-    - name: Configure and restart WeeWX
+    - name: Configure WeeWX
       shell: "cp /home/pi/waga-weather/weewx.conf /etc/weewx/weewx.conf"
+
+    - name: restart weewx with new config
+      service: name=weewx state=restarted
 
     - name: Copy node systemd service file
       shell: "cp /home/pi/waga-weather/weert.service /etc/systemd/system"
