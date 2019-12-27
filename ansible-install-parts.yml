@@ -10,8 +10,11 @@
     - name: Add InfluxDB repository
       apt_repository: repo='deb https://repos.influxdata.com/debian buster stable' state=present
 
-    - name: Install InfluxDB packages
+    - name: Install InfluxDB Server
       apt: name=influxdb state=present
+
+    - name: Install InfluxDB Client
+      apt: name=influxdb-client state=present
 
     - name: Modify InfluxDB hostname
       replace:
