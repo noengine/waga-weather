@@ -13,9 +13,6 @@
     - name: Install InfluxDB Server
       apt: name=influxdb state=present
 
-    - name: Install InfluxDB Client
-      apt: name=influxdb-client state=present
-
     - name: Modify InfluxDB hostname
       replace:
         dest=/etc/influxdb/influxdb.conf
@@ -43,18 +40,18 @@
 
     - name: download Nodesource Script
       get_url:
-        url: https://deb.nodesource.com/setup_12.x
-        dest: /var/tmp/setup_12.x
+        url: https://deb.nodesource.com/setup_16.x
+        dest: /var/tmp/setup_16.x
 
     - name: Run Node.js Setup
-      shell: "chmod +x /var/tmp/setup_12.x && /var/tmp/setup_12.x"
+      shell: "chmod +x /var/tmp/setup_16.x && /var/tmp/setup_16.x"
       register: "output"
 
     - name: Install Node and npm
       apt: name=nodejs state=present
 
     - name: Git Clone WeeRT-JS
-      shell: "cd /home/pi && git clone https://github.com/tkeffer/weert-js.git"
+      shell: "cd /home/pi && git clone https://github.com/bpkneale/weert-js.git"
       become: yes
       become_user: pi
       register: "output"
@@ -70,7 +67,7 @@
 
     - name: Add WeeWX repo
       apt_repository:
-        repo: deb [arch=all] http://weewx.com/apt/ squeeze main
+        repo: deb [arch=all] http://weewx.com/apt/python3 buster main
         state: present
 
     - name: Install WeeWX
