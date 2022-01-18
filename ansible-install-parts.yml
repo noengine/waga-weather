@@ -3,6 +3,19 @@
     hosts: localhost
     connection: local 
     tasks:
+    - name: Install NTP daemon
+      apt: name=ntp state=present
+      tags: ntp
+
+    - name: Configure NTP
+      template:
+        src: ntp.conf.j2
+        dest: /etc/ntp.conf
+      tags: ntp
+
+    - name: Enable NTP Service
+      service: name=ntp state=restarted
+      tags: ntp
 
     - name: Import InfluxDB GPG signing key
       apt_key: url=https://repos.influxdata.com/influxdb.key state=present
