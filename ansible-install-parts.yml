@@ -89,6 +89,15 @@
     - name: Configure WeeWX
       shell: "cp /home/pi/waga-weather/weewx.conf /etc/weewx/weewx.conf"
 
+    - name: Copy WEERT extension into WEEWX user directory
+      copy:
+        src: /home/pi/weert-js/weewx_extensions/weert.py
+        remote_src: yes
+        dest: /usr/share/weewx/user/weert.py
+        mode: 0644
+        owner: root
+        group: root
+
     - name: restart weewx with new config
       service: name=weewx state=restarted
 
@@ -103,4 +112,36 @@
 
     - name: Install NGINX
       apt: name=nginx state=present
+      tags: nginx
+
+    - name: NGINX vhost config files
+      template:
+        src: "files/{{ item }}.j2"
+        dest: "/etc/nginx/sites-available/{{ item }}"
+        owner: root
+        mode: 0644
+        group: root
+      loop:
+        - default
+        - chronograf.beverley-soaring.org.au
+        - weather.beverley-soaring.org.au
+        - wind.beverley-soaring.org.au
+      tags: nginx
+
+    - name: NGINX symlink to sites-enabled
+      file:
+        src: "/etc/nginx/sites-available/{{ item }}"
+        dest: "/etc/nginx/sites-enabled/{{ item }}"
+        state: link
+      loop:
+        - default
+        - chronograf.beverley-soaring.org.au
+        - weather.beverley-soaring.org.au
+        - wind.beverley-soaring.org.au
+      tags: nginx
+
+    - name: Restart NGINX
+      service: name=nginx state=restarted
+      tags: nginx
+
     - debug: var=output.stdout_lines
