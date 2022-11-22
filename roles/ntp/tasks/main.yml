@@ -1,0 +1,13 @@
+---
+- name: Install NTP daemon
+  become: yes
+  apt: 
+    name: ntp
+    state: present
+
+- name: Configure NTP
+  become: yes
+  template:
+    src: templates/ntp.conf.j2
+    dest: /etc/ntp.conf
+  notify: Restart NTPD

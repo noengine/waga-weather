@@ -1,0 +1,12 @@
+---
+- name: Install Chronograf
+  become: yes
+  apt:
+    name: chronograf
+    state: present
+
+- name: Start Chronograf
+  become: yes
+  service:
+    name: chronograf
+    state: restarted

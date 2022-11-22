@@ -1,0 +1,52 @@
+---
+- name: Add WeeRT Unix User
+  become: yes
+  user:
+    name: weert
+    comment: "WeeRT user"
+    group: users
+    uid: 1050
+    shell: /bin/bash
+    expires: -1
+    home: /home/weert
+
+- name: Git Clone WeeRT-JS-bpkneale
+  become: yes
+  become_user: weert
+  git:
+    repo: https://github.com/bpkneale/weert-js.git
+    dest: /home/weert/weert-js
+    clone: yes
+    update: yes
+  
+- name: Install WeeRT node modules
+  become: yes
+  become_user: weert
+  shell: "npm install"
+  args:
+    chdir: "/home/weert/weert-js"
+  register: "output"
+
+- name: Install node weert client
+  become: yes
+  become_user: weert
+  shell: "npm install"
+  args:
+    chdir: "/home/weert/weert-js/client"
+
+- name: Run Build node weert client
+  become: yes
+  become_user: weert
+  shell: "npm run build"
+  args:
+    chdir: "/home/weert/weert-js/client"
+
+- name: Copy WEERT extension into WEEWX user directory
+  become: yes
+  copy:
+    src: /home/weert/weert-js/weewx_extensions/weert.py
+    remote_src: yes
+    dest: /usr/share/weewx/user/weert.py
+    mode: 0644
+    owner: root
+    group: root

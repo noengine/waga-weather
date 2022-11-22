@@ -2,7 +2,7 @@
   - name: "Install WeeWX WeeRT and Dependencies"
     hosts: localhost
     connection: local
-    gather_facts: False
+    #gather_facts: False
     tasks:
     - name: Install NTP daemon
       apt: name=ntp state=present
@@ -23,7 +23,7 @@
       tags: influx
 
     - name: Add InfluxDB repository
-      apt_repository: repo='deb https://repos.influxdata.com/debian buster stable' state=present
+      apt_repository: repo='deb https://repos.influxdata.com/debian bullseye stable' state=present
       tags: influx
 
     - name: Install InfluxDB Server

@@ -1,0 +1,26 @@
+---
+- name: "Install WAGA Weather Station Software"
+  hosts: localhost
+  connection: local
+  #gather_facts: False
+  tasks:
+  - name: Loop through roles
+    include_role:
+      name: "{{ r }}"
+      apply:
+        tags:
+          - "{{ r }}"
+    tags:
+      - always
+    loop_control:
+      loop_var: r
+    loop:
+      - ntp
+      - repos
+      - influxdb
+      - telegraf
+      - chronograf
+      - weewx
+      - nodejs
+      #- weert
+      - nginx

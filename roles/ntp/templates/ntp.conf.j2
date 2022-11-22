@@ -1,0 +1,8 @@
+driftfile /var/lib/ntp/ntp.drift
+server 61.9.242.12 iburst
+server 61.9.242.45 iburst
+restrict -4 default kod notrap nomodify nopeer noquery limited
+restrict -6 default kod notrap nomodify nopeer noquery limited
+restrict 127.0.0.1
+restrict ::1
+

@@ -1,0 +1,16 @@
+---
+- name: Download Nodesource Script
+  get_url:
+    url: https://deb.nodesource.com/setup_lts.x
+    dest: /var/tmp/setup_lts.x
+
+- name: Run Node.js Setup
+  become: yes
+  shell: "chmod +x /var/tmp/setup_lts.x && /var/tmp/setup_lts.x"
+  register: "output"
+
+- name: Install Node and npm
+  become: yes
+  apt:
+    name: nodejs
+    state: present

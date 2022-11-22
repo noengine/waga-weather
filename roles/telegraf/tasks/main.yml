@@ -1,0 +1,44 @@
+---
+- name: Install Telegraf
+  become: yes
+  apt: 
+    name: telegraf
+    state: present
+
+- name: Install lm-sensors
+  become: yes
+  apt: 
+    name: lm-sensors
+    state: present
+
+- name: Configure Telegraf
+  become: yes
+  blockinfile:
+    path: /etc/telegraf/telegraf.conf
+    block: |
+      ###########################################################################
+      # telegraf config for waga-weather project
+      # Ansible appends this to /etc/telegraf/telegraf.conf and restarts telegraf
+      [[inputs.net]]
+      interfaces = ["eth0","wlan0"]
+
+      [[inputs.netstat]]
+
+      [[inputs.nginx]]
+      urls = ["http://localhost/nginx_status"]
+      response_timeout = "5s"
+
+      [[inputs.ntpq]]
+      dns_lookup = true
+
+      [[inputs.sensors]]
+      timeout = "5s"
+
+      # End of waga-weather ansible-appended telegraf config
+      ###########################################################################
+
+- name: Start Telegraf
+  become: yes
+  service:
+    name: telegraf
+    state: restarted      

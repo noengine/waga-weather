@@ -1,0 +1,55 @@
+---
+- name: Install WeeWX
+  become: yes
+  apt:
+    name: weewx
+    state: present
+
+#- name: Configure WeeWX
+  # this is weak as piss - find a better way to do the weewx config
+  # shell: "cp /home/pi/waga-weather/weewx.conf /etc/weewx/weewx.conf"
+
+- name: Set WeeWX Location
+  become: yes
+  ini_file: 
+    path: /etc/weewx/weewx.conf
+    section: Station
+    option: location
+    value: "Beverley Airfield (YBEV)"
+  notify: Restart WeeWX
+
+- name: Set WeeWX Latitude
+  become: yes
+  ini_file: 
+    path: /etc/weewx/weewx.conf
+    section: Station
+    option: latitude
+    value: -32.125660
+  notify: Restart WeeWX
+
+- name: Set WeeWX Latitude
+  become: yes
+  ini_file: 
+    path: /etc/weewx/weewx.conf
+    section: Station
+    option: longitude
+    value: 116.946854
+  notify: Restart WeeWX
+
+- name: Set WeeWX Altitude
+  become: yes
+  ini_file: 
+    path: /etc/weewx/weewx.conf
+    section: Station
+    option: altitude
+    value: 720, foot
+  notify: Restart WeeWX
+
+- name: Set WeeWX Station Type
+  become: yes
+  ini_file: 
+    path: /etc/weewx/weewx.conf
+    section: Station
+    option: station_type
+    value: Simulator
+  notify: Restart WeeWX
