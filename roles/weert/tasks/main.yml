@@ -50,3 +50,27 @@
     mode: 0644
     owner: root
     group: root
+  notify: Restart WeeWX
+
+- name: Add STDRestFul Config to weewx for weert
+  become: yes
+  blockinfile:
+    path: /etc/weewx/weewx.conf
+    insertafter: ".*rapidfire = False.*"
+    block: |
+          [[WeeRT]]
+              host = localhost
+              port = 3000
+              user = weert
+              password = weert
+  notify: Restart WeeWX
+
+# example from: https://stackoverflow.com/questions/56154791/ansible-append-a-string-to-an-existing-line-in-a-file
+- name: Append Engine Services restful_services Config to weewx for weert
+  become: yes
+  lineinfile:
+    path: /etc/weewx/weewx.conf
+    backrefs: yes
+    regexp: '^(.*restful_services.*)$'
+    line: '\1, user.weert.WeeRT'
+  notify: Restart WeeWX

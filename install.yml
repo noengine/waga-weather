@@ -22,5 +22,5 @@
       - chronograf
       - weewx
       - nodejs
-      #- weert
+      - weert
       - nginx
